@@ -70,3 +70,5 @@ dist
 retidy-out
 
 .github
+src/run.ts
+.vscode/launch.json

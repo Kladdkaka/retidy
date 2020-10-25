@@ -14,7 +14,13 @@ import {
     CallExpression,
     ArrayExpression,
     ObjectExpression,
+    Expression,
+    isMemberExpression,
+    isLogicalExpression,
+    isStringLiteral,
+    isLiteral,
 } from "@babel/types"
+import { boolean } from "yargs"
 
 export type ModulesAST = ArrayExpression | ObjectExpression
 
@@ -90,17 +96,41 @@ export const getWebpackBundleInfo = (callAST: CallExpression, options: Options):
 
 }
 
+const isWebpackJsonpMemberExpression = (callee: object): boolean => {
+    if (!isMemberExpression(callee)) {
+        return false
+    }
+
+    let calleeObject = callee.object
+
+    if (
+        isAssignmentExpression(calleeObject) &&
+        isMemberExpression(calleeObject.left) &&
+        isLogicalExpression(calleeObject.right)
+    ) {
+        let me = calleeObject.left
+        if (isIdentifier(me.object, { name: "window" }) && (isIdentifier(me.property, { name: "webpackJsonp" }) || isStringLiteral(me.property, { value: "webpackJsonp" }))) {
+            return true
+        }
+    }
+
+    return false
+}
+
 export const getWebpackJsonpBundleInfo = (callAST: CallExpression, options: Options): WebpackBundleInfo => {
 
-    const { callee, arguments: callArguments } = callAST
+    const { callee } = callAST
     if (isFunctionExpression(callee)) {
         throw new TypeError("This bundle looks like a normal webpack bundle.\nset options.type = 'webpack', and try again.")
-    } else if (!isIdentifier(callee, { name: "webpackJsonp" })) {
+    } else if (!isWebpackJsonpMemberExpression(callee) && !isIdentifier(callee, { name: "webpackJsonp" })) {
         throw NOT_WEBPACK_BOOTSTRAP_AST_ERR
     }
 
+    if (!(callAST.arguments.length == 1 && isArrayExpression(callAST.arguments[0]))) {
+        throw NOT_WEBPACK_BOOTSTRAP_AST_ERR;
+    }
     // const [selfModuleIdArrE, modulesAST, entryIdArrE] = callArguments
-    const [, modulesAST, entryIdArrE] = callArguments
+    const [, modulesAST, entryIdArrE] = callAST.arguments[0].elements
 
     // try to get entry id
     if (typeof options.entryPoint !== "string" || typeof options.entryPoint !== "number") {
@@ -111,9 +141,17 @@ export const getWebpackJsonpBundleInfo = (callAST: CallExpression, options: Opti
                 throw new Error()
             }
 
-            const [entryIdE] = entryIdArrE.elements
+            if (entryIdArrE.elements.length !== 1) {
+                throw new Error()
+            }
 
-            if (!entryIdE || !isNumericLiteral(entryIdE)) {
+            if (!isArrayExpression(entryIdArrE.elements[0])) {
+                throw new Error()
+            }
+
+            const [entryIdE] = entryIdArrE.elements[0].elements
+
+            if (!entryIdE || !(isNumericLiteral(entryIdE) || isStringLiteral(entryIdE) || isLiteral(entryIdE))) {
                 throw new Error()
             }
 

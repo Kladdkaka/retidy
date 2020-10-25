@@ -8,6 +8,8 @@ import {
     identifier,
     callExpression,
     stringLiteral,
+    isStringLiteral,
+    isLiteral,
 } from "@babel/types"
 
 const ERR = new Error("something goes wrong.")
@@ -61,7 +63,7 @@ export const getModuleFunctionParamsTransformer = (entryId: ModuleId) => {
                 return
             }
 
-            if (!isNumericLiteral(requireIdE)) {
+            if (!(isNumericLiteral(requireIdE) || isStringLiteral(requireIdE) || isLiteral(requireIdE))) {
                 throw ERR
             }
 

@@ -134,10 +134,10 @@ export class Printer {
         const oldTabWidth = config.tabWidth
 
         if (!this.explicitTabWidth) {
-            const loc = path.getNode().loc
+            /*const loc = path.getNode().loc
             if (loc && loc.lines && loc.lines.guessTabWidth) {
                 config.tabWidth = loc.lines.guessTabWidth()
-            }
+            }*/
         }
 
         const reprinter = getReprinter(path)
