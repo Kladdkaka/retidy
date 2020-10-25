@@ -63,7 +63,7 @@ export const getModuleFunctionParamsTransformer = (entryId: ModuleId) => {
                 return
             }
 
-            if (!(isNumericLiteral(requireIdE) || isStringLiteral(requireIdE) || isLiteral(requireIdE))) {
+            if (!(isNumericLiteral(requireIdE) || isStringLiteral(requireIdE))) {
                 throw ERR
             }
 

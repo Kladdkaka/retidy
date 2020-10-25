@@ -151,7 +151,7 @@ export const getWebpackJsonpBundleInfo = (callAST: CallExpression, options: Opti
 
             const [entryIdE] = entryIdArrE.elements[0].elements
 
-            if (!entryIdE || !(isNumericLiteral(entryIdE) || isStringLiteral(entryIdE) || isLiteral(entryIdE))) {
+            if (!entryIdE || !(isNumericLiteral(entryIdE) || isStringLiteral(entryIdE))) {
                 throw new Error()
             }
 
